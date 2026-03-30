@@ -13,7 +13,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { placeholderImages } from "@/lib/placeholder-images.json"
+import placeholderData from "@/lib/placeholder-images.json"
 import { useRouter } from "next/navigation"
 import { Skeleton } from "./ui/skeleton"
 
@@ -21,7 +21,7 @@ export function UserNav() {
   const { user, isUserLoading } = useUser()
   const auth = useAuth()
   const router = useRouter()
-  const userAvatar = placeholderImages.find(p => p.id === "user-avatar");
+  const userAvatar = placeholderData.placeholderImages.find(p => p.id === "user-avatar");
 
   const handleLogout = () => {
     if (auth) {

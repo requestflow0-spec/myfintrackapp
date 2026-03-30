@@ -16,13 +16,24 @@ export function initializeFirebase() {
     try {
       // Attempt to initialize via Firebase App Hosting environment variables
       firebaseApp = initializeApp();
-    } catch (e) {
-      // Only warn in production because it's normal to use the firebaseConfig to initialize
-      // during development
-      if (process.env.NODE_ENV === "production") {
+    } catch (e: any) {
+      // Only warn in production (when not in build time) if automatic initialization fails
+      const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+      if (process.env.NODE_ENV === "production" && !isBuildTime) {
         console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
       }
-      firebaseApp = initializeApp(firebaseConfig);
+      
+      // If we have local config, use it as fallback
+      if (firebaseConfig.apiKey) {
+        firebaseApp = initializeApp(firebaseConfig);
+      } else {
+        // This will only happen if both environments are missing config
+        if (!isBuildTime) {
+          console.error('Firebase initialization failed: No config options provided.');
+        }
+        // Create a dummy app to prevent crashes during some build phases if needed
+        throw e;
+      }
     }
 
     return getSdks(firebaseApp);
