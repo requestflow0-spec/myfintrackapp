@@ -1,0 +1,532 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a distinct financial profile managed by a user within the application. A single user account can have multiple profiles.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the external user account that owns this profile. (Relationship: User 1:N UserProfile)"
+        },
+        "name": {
+          "type": "string",
+          "description": "A user-defined name for the financial profile (e.g., 'Personal Finances', 'Business Account A')."
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional detailed description for the financial profile."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the user profile was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Income": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Income",
+      "type": "object",
+      "description": "Records details of various income sources for a specific financial profile, used for profit/loss calculation and reporting.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Income entity."
+        },
+        "profileId": {
+          "type": "string",
+          "description": "Reference to the UserProfile this income belongs to. (Relationship: UserProfile 1:N Income)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of income received."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date when the income was received.",
+          "format": "date"
+        },
+        "source": {
+          "type": "string",
+          "description": "The source of the income (e.g., 'Salary', 'Freelance Work', 'Investment Dividend')."
+        },
+        "client": {
+          "type": "string",
+          "description": "The client or payer from whom the income was received, if applicable (e.g., for freelance income)."
+        },
+        "insuranceDetail": {
+          "type": "string",
+          "description": "Specific details if this income is related to insurance (e.g., 'Insurance Claim Payout', 'Reimbursement')."
+        },
+        "debtDetail": {
+          "type": "string",
+          "description": "Specific details if this income is related to debt (e.g., 'Personal Loan Repayment Received', 'Debt Settlement Income')."
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional detailed description for the income entry."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the income record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the income record was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "profileId",
+        "amount",
+        "date",
+        "source",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Expense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expense",
+      "type": "object",
+      "description": "Logs details of expenditures for a specific financial profile, used for profit/loss calculation and reporting.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Expense entity."
+        },
+        "profileId": {
+          "type": "string",
+          "description": "Reference to the UserProfile this expense belongs to. (Relationship: UserProfile 1:N Expense)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the expense incurred."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date when the expense was incurred.",
+          "format": "date"
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the expense (e.g., 'Food', 'Rent', 'Transportation', 'Utilities', 'Entertainment')."
+        },
+        "itemService": {
+          "type": "string",
+          "description": "A specific description of the item or service purchased (e.g., 'Groceries at Walmart', 'Monthly Bus Pass')."
+        },
+        "frequency": {
+          "type": "string",
+          "description": "The frequency of the expense if it is recurring (e.g., 'one-time', 'daily', 'weekly', 'monthly', 'annually').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional detailed description for the expense entry."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the expense record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the expense record was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "profileId",
+        "amount",
+        "date",
+        "category",
+        "itemService",
+        "frequency",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SavingsAccount": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SavingsAccount",
+      "type": "object",
+      "description": "Manages details of savings and investment accounts for a specific financial profile.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SavingsAccount entity."
+        },
+        "profileId": {
+          "type": "string",
+          "description": "Reference to the UserProfile this savings account belongs to. (Relationship: UserProfile 1:N SavingsAccount)"
+        },
+        "name": {
+          "type": "string",
+          "description": "A descriptive name for the savings or investment account (e.g., 'Emergency Fund', 'Retirement Portfolio', 'College Savings')."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of savings account (e.g., 'cash' for liquid funds, 'investment' for stocks/bonds, 'other').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "currentAmount": {
+          "type": "number",
+          "description": "The current amount held in the savings or investment account."
+        },
+        "goalAmount": {
+          "type": "number",
+          "description": "An optional target amount for this savings account to track progress towards a goal."
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional detailed description for the savings account."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the savings account record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the savings account record was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "profileId",
+        "name",
+        "type",
+        "currentAmount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Debt": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Debt",
+      "type": "object",
+      "description": "Tracks various debt obligations for a specific financial profile, including balances and payment details.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Debt entity."
+        },
+        "profileId": {
+          "type": "string",
+          "description": "Reference to the UserProfile this debt belongs to. (Relationship: UserProfile 1:N Debt)"
+        },
+        "name": {
+          "type": "string",
+          "description": "A descriptive name for the debt (e.g., 'Visa Credit Card', 'Car Loan', 'House Mortgage')."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of debt (e.g., 'credit card', 'house', 'car payment', 'mortgage', 'student loan', 'personal loan', 'other').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "initialAmount": {
+          "type": "number",
+          "description": "The original principal amount or initial balance of the debt."
+        },
+        "currentBalance": {
+          "type": "number",
+          "description": "The current outstanding balance of the debt."
+        },
+        "interestRate": {
+          "type": "number",
+          "description": "The annual interest rate of the debt (e.g., 0.05 for 5%)."
+        },
+        "minimumPayment": {
+          "type": "number",
+          "description": "The minimum payment required for the debt."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The next due date for a debt payment.",
+          "format": "date"
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional detailed description for the debt entry."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the debt record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the debt record was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "profileId",
+        "name",
+        "type",
+        "initialAmount",
+        "currentBalance",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Transaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transaction",
+      "type": "object",
+      "description": "Records all financial transactions, providing a detailed log of money movement for a financial profile.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Transaction entity."
+        },
+        "profileId": {
+          "type": "string",
+          "description": "Reference to the UserProfile this transaction belongs to. (Relationship: UserProfile 1:N Transaction)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of money involved in the transaction."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date when the transaction occurred.",
+          "format": "date"
+        },
+        "type": {
+          "type": "string",
+          "description": "The general type of the financial transaction (e.g., 'income', 'expense', 'transfer', 'debt_payment', 'savings_deposit', 'adjustment', 'other').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "modeOfPayment": {
+          "type": "string",
+          "description": "The method used for the payment (e.g., 'Credit Card', 'Bank Transfer', 'Cash', 'Debit Card', 'Cheque')."
+        },
+        "category": {
+          "type": "string",
+          "description": "A broad category for the transaction (e.g., 'Groceries', 'Salary', 'Rent', 'Savings Transfer', 'Loan Repayment')."
+        },
+        "recipientSender": {
+          "type": "string",
+          "description": "The recipient of the payment or the sender of the funds, depending on the transaction type."
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional detailed description for the transaction."
+        },
+        "incomeId": {
+          "type": "string",
+          "description": "Optional reference to an Income entity if this transaction is linked to a specific income record. (Relationship: Income 1:N Transaction)"
+        },
+        "expenseId": {
+          "type": "string",
+          "description": "Optional reference to an Expense entity if this transaction is linked to a specific expense record. (Relationship: Expense 1:N Transaction)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the transaction record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the transaction record was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "profileId",
+        "amount",
+        "date",
+        "type",
+        "modeOfPayment",
+        "category",
+        "recipientSender",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/userProfiles/{userProfileId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user-specific financial profiles. Each profile is owned by a single user. The `userId` field explicitly confirms ownership and supports authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the profile."
+            },
+            {
+              "name": "userProfileId",
+              "description": "The unique identifier for a specific financial profile belonging to the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/userProfiles/{userProfileId}/incomes/{incomeId}",
+        "definition": {
+          "entityName": "Income",
+          "schema": {
+            "$ref": "#/backend/entities/Income"
+          },
+          "description": "Records income entries for a specific UserProfile. Includes denormalized 'userId' and 'profileId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the parent profile."
+            },
+            {
+              "name": "userProfileId",
+              "description": "The unique identifier of the parent financial profile."
+            },
+            {
+              "name": "incomeId",
+              "description": "The unique identifier for an income entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/userProfiles/{userProfileId}/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "schema": {
+            "$ref": "#/backend/entities/Expense"
+          },
+          "description": "Records expense entries for a specific UserProfile. Includes denormalized 'userId' and 'profileId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the parent profile."
+            },
+            {
+              "name": "userProfileId",
+              "description": "The unique identifier of the parent financial profile."
+            },
+            {
+              "name": "expenseId",
+              "description": "The unique identifier for an expense entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/userProfiles/{userProfileId}/savingsAccounts/{savingsAccountId}",
+        "definition": {
+          "entityName": "SavingsAccount",
+          "schema": {
+            "$ref": "#/backend/entities/SavingsAccount"
+          },
+          "description": "Manages savings and investment accounts for a specific UserProfile. Includes denormalized 'userId' and 'profileId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the parent profile."
+            },
+            {
+              "name": "userProfileId",
+              "description": "The unique identifier of the parent financial profile."
+            },
+            {
+              "name": "savingsAccountId",
+              "description": "The unique identifier for a savings account."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/userProfiles/{userProfileId}/debts/{debtId}",
+        "definition": {
+          "entityName": "Debt",
+          "schema": {
+            "$ref": "#/backend/entities/Debt"
+          },
+          "description": "Tracks debt obligations for a specific UserProfile. Includes denormalized 'userId' and 'profileId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the parent profile."
+            },
+            {
+              "name": "userProfileId",
+              "description": "The unique identifier of the parent financial profile."
+            },
+            {
+              "name": "debtId",
+              "description": "The unique identifier for a debt entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/userProfiles/{userProfileId}/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Records all financial transactions for a specific UserProfile. Includes denormalized 'userId' and 'profileId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the parent profile."
+            },
+            {
+              "name": "userProfileId",
+              "description": "The unique identifier of the parent financial profile."
+            },
+            {
+              "name": "transactionId",
+              "description": "The unique identifier for a transaction entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure for FinTrack Pro prioritizes **Authorization Independence** and **Queryable Access Patterns (QAPs)** by leveraging a strict hierarchical path structure combined with strategic denormalization. All user-specific data is nested under a top-level `/users/{userId}` collection. This immediately scopes all operations to the authenticated user, making security rules simple and robust.\n\n**Authorization Independence:** This is achieved by mandating that every document in the hierarchy, starting from `UserProfile` down to `Income`, `Expense`, `SavingsAccount`, `Debt`, and `Transaction`, includes the `userId` field. While `UserProfile` naturally contains `userId`, for all subcollection documents (e.g., `incomes`, `expenses`), the `userId` (from the parent `/users/{userId}` path segment) and `profileId` (from the parent `/userProfiles/{userProfileId}` path segment) are explicitly denormalized into each document. This eliminates the need for `get()` calls in Firestore Security Rules to check parent ownership, which is critical for rule performance, atomic operations (transactions/batches), and debuggability. A rule for any document can simply verify `request.auth.uid == resource.data.userId` and `resource.data.profileId == userProfileId` without any cross-document reads.\n\n**Queryable Access Patterns (QAPs):** The hierarchical structure directly supports efficient and secure `list` operations. Users can only perform queries within their own `/users/{request.auth.uid}/` subtree. For example, to list all incomes for a specific profile, the query would target `/users/{userId}/userProfiles/{userProfileId}/incomes`. The security rules will allow this `list` operation only if `userId` in the path matches `request.auth.uid`. The denormalized `userId` field within each `income` document provides an additional layer of verification, ensuring that even if a malicious actor somehow bypassed the path-based check (highly unlikely with correct rules), the document data itself would expose the mismatch, preventing unauthorized writes.\n\n**Structural Segregation:** Each collection within the hierarchy (e.g., `userProfiles`, `incomes`, `expenses`) maintains a homogeneous security posture. All documents in a given collection within a user's path belong exclusively to that user and profile, simplifying security rules to basic ownership checks. There are no mixed-access data types (e.g., public/private) within the same collection.\n\n**Access Modeling & Consistency:** The structure consistently applies path-based ownership (`/users/{userId}/...`) for all private user data. Wildcards are semantically named (`userId`, `userProfileId`, `incomeId`, etc.) for clarity. This design ensures that the data model is predictable, easy to secure, and scales well for a multi-user financial tracking application."
+  }
+}

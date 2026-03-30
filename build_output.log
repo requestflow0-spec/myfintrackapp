@@ -1,0 +1,72 @@
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\maina\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\Users\maina\Downloads\fintrack-main\fintrack-main\package-lock.json
+
+   ▲ Next.js 15.5.9
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings in 4.9s
+
+./src/components/user-nav.tsx
+Attempted import error: 'placeholderImages'.'find' is not exported from '@/lib/placeholder-images.json' (imported as 'placeholderImages').
+
+Import trace for requested module:
+./src/components/user-nav.tsx
+./src/components/header.tsx
+
+ ⚠ Compiled with warnings in 4.1s
+
+./src/components/user-nav.tsx
+Attempted import error: 'placeholderImages'.'find' is not exported from '@/lib/placeholder-images.json' (imported as 'placeholderImages').
+
+Import trace for requested module:
+./src/components/user-nav.tsx
+./src/components/header.tsx
+
+ ✓ Compiled successfully in 9.1s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/17) ...
+Automatic initialization failed. Falling back to firebase config object. Error [FirebaseError]: Firebase: Need to provide options, when not being deployed to hosting via source. (app/no-options).
+    at W (C:\Users\maina\Downloads\fintrack-main\fintrack-main\.next\server\chunks\721.js:1:157316)
+    at p (C:\Users\maina\Downloads\fintrack-main\fintrack-main\.next\server\chunks\658.js:2:549)
+    at <unknown> (C:\Users\maina\Downloads\fintrack-main\fintrack-main\.next\server\chunks\658.js:1:222)
+    at h (C:\Users\maina\Downloads\fintrack-main\fintrack-main\.next\server\chunks\658.js:1:209) {
+  code: 'app/no-options',
+  customData: {}
+}
+   Generating static pages (4/17) 
+   Generating static pages (8/17) 
+   Generating static pages (12/17) 
+ ✓ Generating static pages (17/17)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      124 B         102 kB
+├ ○ /_not-found                            996 B         102 kB
+├ ○ /dashboard                           4.86 kB         329 kB
+├ ○ /debts                               2.82 kB         317 kB
+├ ○ /debts/add                           4.25 kB         281 kB
+├ ○ /expenses                            4.99 kB         307 kB
+├ ○ /expenses/add                        4.95 kB         282 kB
+├ ○ /income                               3.8 kB         297 kB
+├ ○ /income/add                           4.7 kB         282 kB
+├ ○ /login                               5.97 kB         255 kB
+├ ○ /reports                             14.5 kB         386 kB
+├ ○ /savings                             2.19 kB         317 kB
+├ ○ /savings/add                         4.18 kB         281 kB
+└ ○ /transactions                        2.57 kB         262 kB
++ First Load JS shared by all             101 kB
+  ├ chunks/255-fa5918c8960e9009.js       45.2 kB
+  ├ chunks/4bd1b696-1c88c00269cf164c.js  54.2 kB
+  └ other shared chunks (total)          2.05 kB
+
+
+○  (Static)  prerendered as static content
+
