@@ -26,7 +26,7 @@ import { doc, updateDoc, arrayUnion, serverTimestamp } from "firebase/firestore"
 import { useUser, useFirestore } from "@/firebase"
 import { useProfile } from "@/context/ProfileContext"
 import type { Expense } from "@/lib/types"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 
 const formSchema = z.object({
   itemService: z.string().min(2, {
@@ -45,6 +45,8 @@ const formSchema = z.object({
   frequency: z.enum(['one-time', 'daily', 'weekly', 'monthly', 'annually']),
 })
 
+const DEFAULT_CATEGORIES = ['Groceries', 'Utilities', 'Transport', 'Entertainment', 'Health', 'Other'];
+
 interface EditExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -58,9 +60,8 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const defaultCategories = ['Groceries', 'Utilities', 'Transport', 'Entertainment', 'Health', 'Other'];
-  const customCategories = currentProfile?.expenseCategories || [];
-  const allCategories = [...new Set([...defaultCategories, ...customCategories])].sort();
+  const customCategories = useMemo(() => currentProfile?.expenseCategories || [], [currentProfile?.expenseCategories]);
+  const allCategories = useMemo(() => [...new Set([...DEFAULT_CATEGORIES, ...customCategories])].sort(), [customCategories]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -77,7 +78,7 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
   useEffect(() => {
     if (expense) {
       // Check if the category is custom
-      const isCustomCategory = !defaultCategories.includes(expense.category) && !customCategories.includes(expense.category);
+      const isCustomCategory = !DEFAULT_CATEGORIES.includes(expense.category) && !customCategories.includes(expense.category);
       
       form.reset({
         itemService: expense.itemService,
@@ -94,7 +95,7 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
         form.setValue('customCategory', expense.category);
       }
     }
-  }, [expense, form, allCategories, defaultCategories, customCategories]);
+  }, [expense, form, allCategories, customCategories]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user || !currentProfile || !expense) return;

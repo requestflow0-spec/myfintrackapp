@@ -58,26 +58,28 @@ export function Header() {
   const { data: fetchedProfiles, isLoading: profilesLoading } = useCollection(profilesQuery)
 
   useEffect(() => {
-    // Always keep the context loading state in sync with the query loading state.
     setIsLoading(profilesLoading);
 
-    // Only process data when loading is complete.
     if (!profilesLoading) {
-      if (fetchedProfiles) {
+      if (fetchedProfiles && fetchedProfiles.length > 0) {
         setProfiles(fetchedProfiles);
 
-        const currentProfileStillExists = fetchedProfiles.some(p => p.id === currentProfile?.id);
+        const latestProfile = fetchedProfiles.find(p => p.id === currentProfile?.id);
 
-        if (!currentProfileStillExists && fetchedProfiles.length > 0) {
+        if (latestProfile) {
+          // If profile exists, update it if the content has changed (e.g. new categories added)
+          if (JSON.stringify(latestProfile) !== JSON.stringify(currentProfile)) {
+            setCurrentProfile(latestProfile);
+          }
+        } else {
           // If no profile is selected or the current one is gone, select the first.
           setCurrentProfile(fetchedProfiles[0]);
-        } else if (fetchedProfiles.length === 0) {
-          // If there are no profiles for the user, clear the current profile.
-          setCurrentProfile(null);
-          setProfiles([]);
         }
+      } else if (fetchedProfiles && fetchedProfiles.length === 0) {
+        setProfiles([]);
+        setCurrentProfile(null);
       } else {
-        // This case handles when fetchedProfiles is null after loading (empty or error).
+        // This case handles when fetchedProfiles is null after loading (error).
         setProfiles([]);
         setCurrentProfile(null);
       }
