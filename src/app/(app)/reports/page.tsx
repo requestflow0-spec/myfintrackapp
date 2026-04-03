@@ -29,7 +29,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebas
 import { useProfile } from "@/context/ProfileContext"
 import { collection } from "firebase/firestore"
 import type { Income, Expense, Transaction, Debt, SavingsAccount } from "@/lib/types"
-import { cn } from "@/lib/utils"
+import { cn, getCurrencySymbol } from "@/lib/utils"
 import { useState, useMemo } from "react"
 import { DatePickerWithRange } from "@/components/date-range-picker"
 import { ExportButton } from "@/components/export-button"
@@ -269,7 +269,7 @@ export default function ReportsPage() {
                   <td>${tx.category}</td>
                   <td style="text-transform: capitalize;">${tx.type}</td>
                   <td class="text-right font-medium">
-                    ${tx.type === 'income' ? '+' : '-'}$${tx.amount.toLocaleString()}
+                    ${tx.type === 'income' ? '+' : '-'}${getCurrencySymbol(currentProfile?.currency)}${tx.amount.toLocaleString()}
                   </td>
                 </tr>
               `).join('')}
@@ -325,7 +325,7 @@ export default function ReportsPage() {
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">${totalEarned.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600">{getCurrencySymbol(currentProfile?.currency)}{totalEarned.toLocaleString()}</div>
           </CardContent>
         </Card>
         <Card>
@@ -334,7 +334,7 @@ export default function ReportsPage() {
             <Wallet className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">${moneySpent.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-red-600">{getCurrencySymbol(currentProfile?.currency)}{moneySpent.toLocaleString()}</div>
           </CardContent>
         </Card>
         <Card>
@@ -344,7 +344,7 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ${netProfit.toLocaleString()}
+              {getCurrencySymbol(currentProfile?.currency)}{netProfit.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -366,7 +366,7 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold text-orange-600`}>
-              ${totalDebts.toLocaleString()}
+              {getCurrencySymbol(currentProfile?.currency)}{totalDebts.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -390,7 +390,7 @@ export default function ReportsPage() {
                 <YAxis 
                   stroke="hsl(var(--muted-foreground))"
                   tick={{fill: 'hsl(var(--muted-foreground))'}}
-                  tickFormatter={(value) => `$${value}`}
+                  tickFormatter={(value) => `${getCurrencySymbol(currentProfile?.currency)}${value}`}
                 />
                 <RechartsTooltip 
                   contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
@@ -414,7 +414,7 @@ export default function ReportsPage() {
               <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <PieChart>
                   <RechartsTooltip 
-                    formatter={(value: number) => `$${value.toLocaleString()}`}
+                    formatter={(value: number) => `${getCurrencySymbol(currentProfile?.currency)}${value.toLocaleString()}`}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
                   />
                   <Legend verticalAlign="bottom" height={36}/>
@@ -538,7 +538,7 @@ export default function ReportsPage() {
                         "text-right font-bold",
                         tx.type === 'income' ? "text-green-600" : "text-red-600"
                       )}>
-                        {tx.type === 'income' ? "+" : "-"}${tx.amount.toLocaleString()}
+                        {tx.type === 'income' ? "+" : "-"}{getCurrencySymbol(currentProfile?.currency)}{tx.amount.toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))

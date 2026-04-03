@@ -29,7 +29,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebas
 import { useProfile } from "@/context/ProfileContext"
 import { collection, doc, deleteDoc } from "firebase/firestore"
 import type { Transaction } from "@/lib/types"
-import { cn } from "@/lib/utils"
+import { cn, getCurrencySymbol } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { useState, useMemo } from "react"
 import { Search } from "lucide-react"
@@ -148,7 +148,7 @@ export default function TransactionsPage() {
                     ? (transaction.type === 'income' ? "text-red-600" : "text-green-600")
                     : (transaction.type === 'income' ? "text-green-600" : "text-red-600")
                 )}>
-                  {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                  {transaction.type === 'income' ? '+' : '-'}{getCurrencySymbol(currentProfile?.currency)}{transaction.amount.toLocaleString()}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>

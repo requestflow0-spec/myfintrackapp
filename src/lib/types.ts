@@ -2,6 +2,7 @@ export type UserProfile = {
   userId: string;
   name: string;
   description?: string;
+  currency?: string;
   expenseCategories?: string[];
   createdAt: any;
   updatedAt: any;

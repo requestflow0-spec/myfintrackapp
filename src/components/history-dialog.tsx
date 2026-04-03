@@ -15,6 +15,7 @@ import { format } from "date-fns"
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
 import { useMemo } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { getCurrencySymbol } from "@/lib/utils"
 
 interface HistoryDialogProps {
   open: boolean;
@@ -100,7 +101,7 @@ export function HistoryDialog({ open, onOpenChange, itemType, itemName, itemId }
                       </div>
                     </div>
                     <div className={`font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {isPositive ? '+' : '-'}${tx.amount.toLocaleString()}
+                      {isPositive ? '+' : '-'}{getCurrencySymbol(currentProfile?.currency)}{tx.amount.toLocaleString()}
                     </div>
                   </div>
                 )

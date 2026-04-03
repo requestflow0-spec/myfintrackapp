@@ -1,48 +1,3 @@
-/**
- * # Firestore Security Rules for FinTrack Pro
- *
- * ## Core Philosophy
- * This ruleset enforces a strict user-ownership model. All user data is private and can only be
- * accessed by the authenticated user who created it. There is no concept of public data or
- * shared access between different users. The primary goal is to ensure robust data isolation
- * for each user's sensitive financial information.
- *
- * ## Data Structure
- * The data is organized hierarchically, with all user-specific information nested under a
- * top-level `/users/{userId}` path. This structure is fundamental to the security model, as it
- * allows for simple, performant rules that grant access based on the user's authenticated ID
- * matching the path.
- *
- * A user has one or more financial profiles, located at:
- * `/users/{userId}/userProfiles/{userProfileId}`
- *
- * Each profile then contains its own subcollections for financial data:
- * - `/.../{userProfileId}/incomes/{incomeId}`
- * - `/.../{userProfileId}/expenses/{expenseId}`
- * - `/.../{userProfileId}/savingsAccounts/{savingsAccountId}`
- * - `/.../{userProfileId}/debts/{debtId}`
- * - `/.../{userProfileId}/transactions/{transactionId}`
- *
- * ## Key Security Decisions
- * - **No Public Access**: All read and write operations require user authentication.
- * - **Strict Ownership**: A user can only access data within their own `/users/{userId}` tree.
- * - **No User Listing**: It is impossible to list all users in the system.
- * - **Authorization Independence**: Rules are designed to be simple and fast by avoiding `get()`
- *   or `exists()` calls to other documents for authorization decisions.
- *
- * ## Denormalization for Authorization
- * To create simpler and more performant rules, this security model relies on denormalization.
- * - Each `UserProfile` document must contain a `userId` field that matches the `{userId}` in the path.
- * - Every document in a subcollection (e.g., an `Income` document) must contain a `profileId`
- *   field that matches the `{userProfileId}` in its path.
- * These rules are enforced on document creation and updates to ensure relational integrity, which
- * is critical for the security model.
- *
- * ## Structural Segregation
- * The architecture uses separate collections for each data type (incomes, expenses, etc.)
- * under a user's profile. This clear separation ensures that security rules are simple,
- * consistent, and easy to maintain for each data entity.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -51,184 +6,93 @@ service cloud.firestore {
     // Helper Functions
     // =====================================================================
 
-    /**
-     * Checks if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user's UID matches the provided userId.
-     * This is the primary function for enforcing user ownership.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * For state-changing operations (update, delete), ensures the user is the
-     * owner AND that the document already exists.
-     */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
-    /**
-     * On create, validates that the new UserProfile document contains a `userId`
-     * field that correctly links it to the user path.
-     */
     function hasValidUserProfileData(userId) {
       return request.resource.data.userId == userId;
     }
 
-    /**
-     * On update, ensures the `userId` field on a UserProfile is immutable.
-     */
     function isImmutableUserId() {
       return request.resource.data.userId == resource.data.userId;
     }
 
-    /**
-     * On create, validates that a subcollection document (e.g., income, expense)
-     * contains a `profileId` field that correctly links it to its parent profile path.
-     */
     function hasValidSubcollectionData(userProfileId) {
       return request.resource.data.profileId == userProfileId;
     }
 
-    /**
-     * On update, ensures the `profileId` field on a subcollection document is immutable.
-     */
     function isImmutableProfileId() {
       return request.resource.data.profileId == resource.data.profileId;
     }
 
-
     // =====================================================================
-    // User Profiles Collection
-    // =====================================================================
-
-    /**
-     * @description Controls access to a user's financial profiles. Only the owning
-     *              user can read, create, update, or delete their own profiles.
-     * @path        /users/{userId}/userProfiles/{userProfileId}
-     * @allow       (create) A signed-in user with auth.uid = 'user123' creating a
-     *              document at /users/user123/userProfiles/abc with `userId: 'user123'`
-     *              in the document body.
-     * @deny        (get) A user with auth.uid = 'user456' trying to read a profile
-     *              at /users/user123/userProfiles/abc.
-     * @principle   Restricts access to a user's own data tree and enforces relational
-     *              integrity between the document path and its content.
-     */
-    match /users/{userId}/userProfiles/{userProfileId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidUserProfileData(userId);
-      allow update: if isExistingOwner(userId) && isImmutableUserId();
-      allow delete: if isExistingOwner(userId);
-    }
-
-
-    // =====================================================================
-    // Profile Subcollections
-    // The rules for incomes, expenses, savings, debts, and transactions
-    // follow the exact same ownership and relational integrity pattern.
+    // Data Rules
     // =====================================================================
 
-    /**
-     * @description Controls access to income records for a specific financial profile.
-     *              Only the user who owns the profile can manage its income records.
-     * @path        /users/{userId}/userProfiles/{userProfileId}/incomes/{incomeId}
-     * @allow       (create) A user with auth.uid = 'user123' creating an income record
-     *              under their own profile with `profileId: 'profile_abc'` in the body.
-     * @deny        (update) A user with auth.uid = 'user123' trying to update an
-     *              income record for another user's profile.
-     * @principle   Enforces inherited ownership from the parent document path and
-     *              validates relational integrity (`profileId`) on writes.
-     */
-    match /users/{userId}/userProfiles/{userProfileId}/incomes/{incomeId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
-      allow update: if isExistingOwner(userId) && isImmutableProfileId();
-      allow delete: if isExistingOwner(userId);
-    }
+    // All user-owned data is nested under /users/{userId}
+    match /users/{userId} {
+      // Basic user document access
+      allow get, create, update, delete: if isOwner(userId);
 
-    /**
-     * @description Controls access to expense records for a specific financial profile.
-     *              Only the user who owns the profile can manage its expense records.
-     * @path        /users/{userId}/userProfiles/{userProfileId}/expenses/{expenseId}
-     * @allow       (list) A user with auth.uid = 'user123' listing expenses
-     *              under their own path /users/user123/userProfiles/profile_abc/expenses.
-     * @deny        (delete) A user with auth.uid = 'user456' trying to delete an
-     *              expense from another user's profile.
-     * @principle   Enforces inherited ownership from the parent document path and
-     *              validates relational integrity (`profileId`) on writes.
-     */
-    match /users/{userId}/userProfiles/{userProfileId}/expenses/{expenseId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
-      allow update: if isExistingOwner(userId) && isImmutableProfileId();
-      allow delete: if isExistingOwner(userId);
-    }
+      // User Profiles Collection
+      // Path: /users/{userId}/userProfiles/{userProfileId}
+      match /userProfiles/{userProfileId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasValidUserProfileData(userId);
+        allow update: if isExistingOwner(userId) && isImmutableUserId();
+        allow delete: if isExistingOwner(userId);
 
-    /**
-     * @description Controls access to savings accounts for a specific financial profile.
-     *              Only the user who owns the profile can manage its savings accounts.
-     * @path        /users/{userId}/userProfiles/{userProfileId}/savingsAccounts/{savingsAccountId}
-     * @allow       (get) A user with auth.uid = 'user123' reading a savings account
-     *              from their own profile path.
-     * @deny        (create) A user creating a savings account where the document's
-     *              `profileId` does not match the `{userProfileId}` in the path.
-     * @principle   Enforces inherited ownership from the parent document path and
-     *              validates relational integrity (`profileId`) on writes.
-     */
-    match /users/{userId}/userProfiles/{userProfileId}/savingsAccounts/{savingsAccountId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
-      allow update: if isExistingOwner(userId) && isImmutableProfileId();
-      allow delete: if isExistingOwner(userId);
-    }
+        // Subcollections must be nested HERE to inherit {userId} and {userProfileId}
+        
+        // Incomes
+        match /incomes/{incomeId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
+          allow update: if isExistingOwner(userId) && isImmutableProfileId();
+          allow delete: if isExistingOwner(userId);
+        }
 
-    /**
-     * @description Controls access to debt records for a specific financial profile.
-     *              Only the user who owns the profile can manage its debt records.
-     * @path        /users/{userId}/userProfiles/{userProfileId}/debts/{debtId}
-     * @allow       (update) A user with auth.uid = 'user123' updating a debt record
-     *              that exists under their own profile path.
-     * @deny        (update) A user with auth.uid = 'user123' attempting to change the
-     *              immutable `profileId` field on an existing debt record.
-     * @principle   Enforces inherited ownership from the parent document path and
-     *              validates relational integrity (`profileId`) on writes.
-     */
-    match /users/{userId}/userProfiles/{userProfileId}/debts/{debtId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
-      allow update: if isExistingOwner(userId) && isImmutableProfileId();
-      allow delete: if isExistingOwner(userId);
-    }
+        // Expenses
+        match /expenses/{expenseId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
+          allow update: if isExistingOwner(userId) && isImmutableProfileId();
+          allow delete: if isExistingOwner(userId);
+        }
 
-    /**
-     * @description Controls access to transaction records for a specific financial profile.
-     *              Only the user who owns the profile can manage its transaction records.
-     * @path        /users/{userId}/userProfiles/{userProfileId}/transactions/{transactionId}
-     * @allow       (delete) A user with auth.uid = 'user123' deleting a transaction
-     *              that exists under their own profile path.
-     * @deny        (get) An unauthenticated user trying to read any transaction record.
-     * @principle   Enforces inherited ownership from the parent document path and
-     *              validates relational integrity (`profileId`) on writes.
-     */
-    match /users/{userId}/userProfiles/{userProfileId}/transactions/{transactionId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
-      allow update: if isExistingOwner(userId) && isImmutableProfileId();
-      allow delete: if isExistingOwner(userId);
-    }
+        // Savings Accounts
+        match /savingsAccounts/{savingsAccountId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
+          allow update: if isExistingOwner(userId) && isImmutableProfileId();
+          allow delete: if isExistingOwner(userId);
+        }
 
+        // Debts
+        match /debts/{debtId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
+          allow update: if isExistingOwner(userId) && isImmutableProfileId();
+          allow delete: if isExistingOwner(userId);
+        }
+
+        // Transactions
+        match /transactions/{transactionId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
+          allow update: if isExistingOwner(userId) && isImmutableProfileId();
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+    }
   }
 }

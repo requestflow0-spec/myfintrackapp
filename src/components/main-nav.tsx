@@ -26,7 +26,6 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
     { href: "/savings", label: "Savings", icon: PiggyBank, active: pathname === "/savings" },
     { href: "/debts", label: "Debts", icon: Landmark, active: pathname === "/debts" },
     { href: "/reports", label: "Reports", icon: BarChart3, active: pathname === "/reports" },
-    { href: "/profile", label: "Profile", icon: User, active: pathname === "/profile" },
     { href: "/settings", label: "Settings", icon: Settings, active: pathname === "/settings" },
   ];
 

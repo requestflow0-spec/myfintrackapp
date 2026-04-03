@@ -22,6 +22,7 @@ import { doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore"
 import { toast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
+import { getCurrencySymbol } from "@/lib/utils"
 
 export default function DebtsPage() {
   const { user } = useUser();
@@ -142,7 +143,7 @@ export default function DebtsPage() {
             <div>
               <CardTitle>Debt Overview</CardTitle>
               <CardDescription>
-                Total outstanding debt: <span className="font-bold text-destructive">${totalDebt.toLocaleString()}</span>
+                Total outstanding debt: <span className="font-bold text-destructive">{getCurrencySymbol(currentProfile?.currency)}{totalDebt.toLocaleString()}</span>
               </CardDescription>
             </div>
             <Button size="sm" className="gap-1" disabled={isProfileLoading || !currentProfile} asChild>
@@ -178,11 +179,11 @@ export default function DebtsPage() {
               <CardContent className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Current Balance</span>
-                  <span className="font-semibold">${debt.currentBalance.toLocaleString()}</span>
+                  <span className="font-semibold">{getCurrencySymbol(currentProfile?.currency)}{debt.currentBalance.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Initial Amount</span>
-                  <span className="font-semibold">${debt.initialAmount.toLocaleString()}</span>
+                  <span className="font-semibold">{getCurrencySymbol(currentProfile?.currency)}{debt.initialAmount.toLocaleString()}</span>
                 </div>
                 <Progress value={100 - progress} className="h-2" />
                 <p className="text-xs text-muted-foreground text-right">{(100 - progress).toFixed(1)}% paid off</p>

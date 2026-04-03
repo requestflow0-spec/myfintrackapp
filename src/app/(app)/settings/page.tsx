@@ -37,6 +37,7 @@ export default function SettingsPage() {
 
   const [workspaceName, setWorkspaceName] = useState(currentProfile?.name || "");
   const [workspaceDesc, setWorkspaceDesc] = useState(currentProfile?.description || "");
+  const [currency] = useState("usd"); // Locked to usd for now
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -53,7 +54,8 @@ export default function SettingsPage() {
       const profileRef = doc(firestore, `users/${user.uid}/userProfiles/${currentProfile.id}`);
       await updateDoc(profileRef, {
         name: workspaceName,
-        description: workspaceDesc
+        description: workspaceDesc,
+        currency: currency
       });
       toast({
         title: "Success",
@@ -83,7 +85,7 @@ export default function SettingsPage() {
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="preferences" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
@@ -132,7 +134,7 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Default Currency</Label>
-                  <Select defaultValue="usd">
+                  <Select value={currency} disabled>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a currency" />
                     </SelectTrigger>
@@ -143,6 +145,7 @@ export default function SettingsPage() {
                       <SelectItem value="kes">KES (KSh)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-[0.8rem] text-muted-foreground">Multi-currency support is temporarily disabled.</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Language Support</Label>
@@ -175,9 +178,9 @@ export default function SettingsPage() {
                     <p className="text-sm text-muted-foreground">{user?.email || "No email linked"}</p>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="space-y-4">
                   <div className="grid gap-2">
                     <Label htmlFor="displayName">Display Name</Label>
@@ -203,25 +206,25 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="grid gap-2">
                     <Label htmlFor="profileName">Workspace Name</Label>
-                    <Input 
-                      id="profileName" 
+                    <Input
+                      id="profileName"
                       value={workspaceName}
-                      onChange={(e) => setWorkspaceName(e.target.value)} 
+                      onChange={(e) => setWorkspaceName(e.target.value)}
                     />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="profileDesc">Description</Label>
-                    <Input 
-                      id="profileDesc" 
+                    <Input
+                      id="profileDesc"
                       value={workspaceDesc}
-                      onChange={(e) => setWorkspaceDesc(e.target.value)} 
+                      onChange={(e) => setWorkspaceDesc(e.target.value)}
                     />
                   </div>
                   <Button onClick={handleSaveWorkspace} disabled={isSaving}>
                     {isSaving ? "Saving..." : "Save Workspace Changes"}
                   </Button>
                 </div>
-                
+
                 <Separator />
 
                 <div className="space-y-4">

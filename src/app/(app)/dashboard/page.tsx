@@ -24,7 +24,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebas
 import { useProfile } from "@/context/ProfileContext"
 import { collection } from "firebase/firestore"
 import type { Income, Expense, Transaction, Debt, SavingsAccount } from "@/lib/types"
-import { cn } from "@/lib/utils"
+import { cn, getCurrencySymbol } from "@/lib/utils"
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -95,7 +95,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalIncome.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{getCurrencySymbol(currentProfile?.currency)}{totalIncome.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">+20.1% from last month</p>
           </CardContent>
         </Card>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalExpenses.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{getCurrencySymbol(currentProfile?.currency)}{totalExpenses.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">+180.1% from last month</p>
           </CardContent>
         </Card>
@@ -116,7 +116,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ${profit.toLocaleString()}
+              {getCurrencySymbol(currentProfile?.currency)}{profit.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Analysis of your finances</p>
           </CardContent>
@@ -144,7 +144,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip
-                    formatter={(value: number) => `$${value.toLocaleString()}`}
+                    formatter={(value: number) => `${getCurrencySymbol(currentProfile?.currency)}${value.toLocaleString()}`}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
                     itemStyle={{ color: 'hsl(var(--foreground))' }}
                   />
@@ -195,7 +195,7 @@ export default function DashboardPage() {
                         "text-right font-bold",
                         transaction.type === 'income' ? "text-green-600" : "text-red-600"
                       )}>
-                        {transaction.type === 'income' ? "+" : "-"}${transaction.amount.toLocaleString()}
+                        {transaction.type === 'income' ? "+" : "-"}{getCurrencySymbol(currentProfile?.currency)}{transaction.amount.toLocaleString()}
                       </TableCell>
                       <TableCell>
                         <Badge variant={transaction.type === 'income' ? 'default' : 'secondary'} className="text-xs capitalize">

@@ -35,6 +35,8 @@ import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { useState } from "react"
+import { useProfile } from "@/context/ProfileContext"
+import { getCurrencySymbol } from "@/lib/utils"
 
 const formSchema = z.object({
     operation: z.enum(['increase', 'decrease']),
@@ -56,7 +58,7 @@ interface AdjustBalanceDialogProps {
 }
 
 export function AdjustBalanceDialog({ item, type, open, onOpenChange, onConfirm }: AdjustBalanceDialogProps) {
-    console.log("AdjustBalanceDialog Rendered. Type:", type, "Open:", open, "Item:", item);
+    const { currentProfile } = useProfile();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -94,7 +96,7 @@ export function AdjustBalanceDialog({ item, type, open, onOpenChange, onConfirm 
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>
-                        {description}. Current Balance: ${item.currentAmount.toLocaleString()}
+                        {description}. Current Balance: {getCurrencySymbol(currentProfile?.currency)}{item.currentAmount.toLocaleString()}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>

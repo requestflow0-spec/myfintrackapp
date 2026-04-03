@@ -29,6 +29,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebas
 import { useProfile } from "@/context/ProfileContext"
 import { collection } from "firebase/firestore"
 import type { Expense } from "@/lib/types"
+import { getCurrencySymbol } from "@/lib/utils"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { useState, useMemo } from "react"
@@ -160,7 +161,7 @@ export default function ExpensesPage() {
                   <Badge variant="secondary">{expense.category}</Badge>
                 </TableCell>
                 <TableCell className="capitalize">{expense.frequency}</TableCell>
-                <TableCell className="text-right">${expense.amount.toLocaleString()}</TableCell>
+                <TableCell className="text-right">{getCurrencySymbol(currentProfile?.currency)}{expense.amount.toLocaleString()}</TableCell>
                 <TableCell>{expense.date}</TableCell>
                 <TableCell>
                   <DropdownMenu>

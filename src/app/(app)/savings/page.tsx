@@ -21,6 +21,7 @@ import { doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore"
 import { toast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
+import { getCurrencySymbol } from "@/lib/utils"
 
 export default function SavingsPage() {
   const { user } = useUser();
@@ -143,7 +144,7 @@ export default function SavingsPage() {
             <div>
               <CardTitle>Savings Overview</CardTitle>
               <CardDescription>
-                Total savings amount: <span className="font-bold text-primary">${totalSavings.toLocaleString()}</span>
+                Total savings amount: <span className="font-bold text-primary">{getCurrencySymbol(currentProfile?.currency)}{totalSavings.toLocaleString()}</span>
               </CardDescription>
             </div>
             <Button size="sm" className="gap-1" disabled={isProfileLoading || !currentProfile} asChild>
@@ -175,7 +176,7 @@ export default function SavingsPage() {
               {saving.type === 'cash' ? <Wallet className="h-5 w-5 text-muted-foreground" /> : <TrendingUp className="h-5 w-5 text-muted-foreground" />}
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">${saving.currentAmount.toLocaleString()}</div>
+              <div className="text-3xl font-bold">{getCurrencySymbol(currentProfile?.currency)}{saving.currentAmount.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground capitalize">in {saving.type}</p>
               {saving.description && <p className="text-xs text-muted-foreground">{saving.description}</p>}
               <Button variant="outline" size="sm" className="w-full mt-4" onClick={() => handleAdjustClick(saving as SavingsAccount & { id: string })}>

@@ -29,6 +29,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebas
 import { useProfile } from "@/context/ProfileContext"
 import { collection } from "firebase/firestore"
 import type { Income } from "@/lib/types"
+import { getCurrencySymbol } from "@/lib/utils"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { useState, useMemo } from "react"
@@ -161,7 +162,7 @@ export default function IncomePage() {
                 <TableCell>
                   {income.client ? <Badge variant="outline">{income.client}</Badge> : '-'}
                 </TableCell>
-                <TableCell className="text-right">${income.amount.toLocaleString()}</TableCell>
+                <TableCell className="text-right">{getCurrencySymbol(currentProfile?.currency)}{income.amount.toLocaleString()}</TableCell>
                 <TableCell>{income.date}</TableCell>
                 <TableCell>
                   <DropdownMenu>

@@ -5,6 +5,7 @@ import {
   Menu,
   ChevronDown,
   PlusCircle,
+  Trash2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -19,7 +20,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { UserNav } from "@/components/user-nav"
 import { MainNav } from "./main-nav"
-import { ThemeToggle } from "@/components/theme-toggle"
 import {
   Dialog,
   DialogContent,
@@ -36,8 +36,10 @@ import * as z from "zod"
 import { useForm } from "react-hook-form"
 import { useEffect, useState } from "react"
 import { collection, serverTimestamp } from "firebase/firestore"
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from "@/firebase"
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase"
 import { useProfile } from "@/context/ProfileContext"
+import { doc } from "firebase/firestore"
+import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -49,6 +51,10 @@ export function Header() {
   const firestore = useFirestore()
   const { currentProfile, setCurrentProfile, profiles, setProfiles, setIsLoading } = useProfile()
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState<any>(null);
+  const [confirmName, setConfirmName] = useState("");
+  const { toast } = useToast();
 
   const profilesQuery = useMemoFirebase(() => {
     if (!user) return null
@@ -57,34 +63,34 @@ export function Header() {
 
   const { data: fetchedProfiles, isLoading: profilesLoading } = useCollection(profilesQuery)
 
+  // Synchronization logic for profiles.
   useEffect(() => {
     setIsLoading(profilesLoading);
 
-    if (!profilesLoading) {
-      if (fetchedProfiles && fetchedProfiles.length > 0) {
-        setProfiles(fetchedProfiles);
+    if (!profilesLoading && fetchedProfiles) {
+      setProfiles(fetchedProfiles);
 
-        const latestProfile = fetchedProfiles.find(p => p.id === currentProfile?.id);
-
-        if (latestProfile) {
-          // If profile exists, update it if the content has changed (e.g. new categories added)
-          if (JSON.stringify(latestProfile) !== JSON.stringify(currentProfile)) {
-            setCurrentProfile(latestProfile);
-          }
-        } else {
-          // If no profile is selected or the current one is gone, select the first.
-          setCurrentProfile(fetchedProfiles[0]);
-        }
-      } else if (fetchedProfiles && fetchedProfiles.length === 0) {
-        setProfiles([]);
-        setCurrentProfile(null);
-      } else {
-        // This case handles when fetchedProfiles is null after loading (error).
-        setProfiles([]);
+      // If no profile is selected, or the current selected one is not in the list, default to the first one available.
+      const exists = currentProfile && fetchedProfiles.some(p => p.id === currentProfile.id);
+      
+      if (!exists && fetchedProfiles.length > 0) {
+        setCurrentProfile(fetchedProfiles[0]);
+      } else if (fetchedProfiles.length === 0) {
         setCurrentProfile(null);
       }
     }
-  }, [fetchedProfiles, profilesLoading, currentProfile, setCurrentProfile, setProfiles, setIsLoading]);
+  }, [fetchedProfiles, profilesLoading, setIsLoading, setProfiles, setCurrentProfile]);
+
+  // Safety reset for unclickable UI bug.
+  // Sometimes Radix UI Dialog leaves pointer-events: none on the body if it closes during a heavy re-render.
+  useEffect(() => {
+    if (!popoverOpen || !deleteDialogOpen) {
+      const timer = setTimeout(() => {
+        document.body.style.pointerEvents = 'auto';
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [popoverOpen, deleteDialogOpen]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -95,17 +101,54 @@ export function Header() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) return
     const profilesCol = collection(firestore, `users/${user.uid}/userProfiles`);
-    addDocumentNonBlocking(profilesCol, {
-      ...values,
-      userId: user.uid,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+    
+    try {
+      await addDocumentNonBlocking(profilesCol, {
+        ...values,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      
+      toast({
+        title: "Profile Created",
+        description: `${values.name} is now active.`,
+      });
+      
+      form.reset();
+      setPopoverOpen(false);
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create profile.",
+        variant: "destructive",
+      });
+    }
+  }
+
+  function handleDeleteProfile(profile: any) {
+    setProfileToDelete(profile);
+    setConfirmName("");
+    setDeleteDialogOpen(true);
+  }
+
+  async function confirmDelete() {
+    if (!user || !profileToDelete || confirmName !== profileToDelete.name) return;
+
+    const profileRef = doc(firestore, `users/${user.uid}/userProfiles/${profileToDelete.id}`);
+    deleteDocumentNonBlocking(profileRef);
+    
+    toast({
+      title: "Profile Deleted",
+      description: `${profileToDelete.name} has been removed.`,
     });
-    form.reset();
-    setPopoverOpen(false);
+
+    setDeleteDialogOpen(false);
+    setProfileToDelete(null);
   }
 
   return (
@@ -146,8 +189,21 @@ export function Header() {
             <DropdownMenuLabel>Switch Profile</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {profiles?.map(profile => (
-              <DropdownMenuItem key={profile.id} onSelect={() => setCurrentProfile(profile)}>
-                {profile.name}
+              <DropdownMenuItem key={profile.id} className="flex items-center justify-between group">
+                <span className="flex-1 cursor-pointer" onClick={() => setCurrentProfile(profile)}>
+                  {profile.name}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteProfile(profile);
+                  }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
@@ -156,6 +212,33 @@ export function Header() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="text-destructive">Delete Profile</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. All data in this profile will be orphaned.
+                Please type <span className="font-bold text-foreground">{(profileToDelete as any)?.name}</span> to confirm.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Input 
+                placeholder="Type profile name..." 
+                value={confirmName}
+                onChange={(e) => setConfirmName(e.target.value)}
+              />
+              <Button 
+                variant="destructive" 
+                className="w-full" 
+                disabled={confirmName !== (profileToDelete as any)?.name}
+                onClick={confirmDelete}
+              >
+                Permanently Delete
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={popoverOpen} onOpenChange={setPopoverOpen}>
           <DialogContent className="sm:max-w-[425px]">
@@ -199,7 +282,6 @@ export function Header() {
           </DialogContent>
         </Dialog>
       </div>
-      <ThemeToggle />
       <UserNav />
     </header>
   )
