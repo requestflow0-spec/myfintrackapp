@@ -7,9 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/appwrite"
 import { useProfile } from "@/context/ProfileContext"
-import { collection, query, where, orderBy } from "firebase/firestore"
+import { collection, query, where, orderBy } from '@/appwrite'
 import type { Transaction } from "@/lib/types"
 import { format } from "date-fns"
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"

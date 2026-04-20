@@ -8,16 +8,16 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, Wallet, TrendingUp } from "lucide-react"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { PlusCircle, Wallet, TrendingUp, History } from "lucide-react"
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/appwrite"
 import { useProfile } from "@/context/ProfileContext"
-import { collection } from "firebase/firestore"
+import { collection } from '@/appwrite'
 import type { SavingsAccount } from "@/lib/types"
 import Link from "next/link"
 import { AdjustBalanceDialog } from "@/components/adjust-balance-dialog"
 import { HistoryDialog } from "@/components/history-dialog"
 import { useState, useMemo } from "react"
-import { doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore"
+import { doc, updateDoc, addDoc, serverTimestamp } from '@/appwrite'
 import { toast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
@@ -138,58 +138,82 @@ export default function SavingsPage() {
 
   return (
     <div className="flex-1 space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>Savings Overview</CardTitle>
-              <CardDescription>
-                Total savings amount: <span className="font-bold text-primary">{getCurrencySymbol(currentProfile?.currency)}{totalSavings.toLocaleString()}</span>
-              </CardDescription>
-            </div>
-            <Button size="sm" className="gap-1" disabled={isProfileLoading || !currentProfile} asChild>
-              <Link href="/savings/add">
-                <PlusCircle className="h-4 w-4" />
-                Add Savings
-              </Link>
-            </Button>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-sm font-bold tracking-widest uppercase text-primary/80 mb-1">Lumina Finance</h2>
+          <h2 className="text-4xl font-extrabold font-display tracking-tight">Savings Overview</h2>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="text-4xl font-extrabold text-primary">{getCurrencySymbol(currentProfile?.currency)}{totalSavings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            {totalSavings > 0 && <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold tracking-wider">Active</span>}
           </div>
-          <div className="mt-4 relative max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search savings accounts..."
-              className="pl-8"
+              placeholder="Search savings goals..."
+              className="pl-9 bg-surface-low border-none shadow-none h-11 rounded-xl font-medium"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-        </CardHeader>
-      </Card>
+          <Button size="lg" className="rounded-xl px-6 font-semibold h-11 shadow-md shadow-primary/20" disabled={isProfileLoading || !currentProfile} asChild>
+            <Link href="/savings/add">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Savings Goal
+            </Link>
+          </Button>
+        </div>
+      </div>
 
       {isLoading && <p>Loading savings...</p>}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {!isLoading && filteredAndSortedSavings.map((saving) => (
-          <Card key={saving.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-md font-medium">{saving.name}</CardTitle>
-              {saving.type === 'cash' ? <Wallet className="h-5 w-5 text-muted-foreground" /> : <TrendingUp className="h-5 w-5 text-muted-foreground" />}
+          <Card key={saving.id} className="bg-card border-none shadow-sm rounded-[24px] overflow-hidden flex flex-col group hover:shadow-md transition-all">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 px-6 pt-6">
+              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                {saving.type === 'cash' ? <Wallet className="h-6 w-6" /> : <TrendingUp className="h-6 w-6" />}
+              </div>
+              <div className="px-3 py-1 rounded-full bg-surface-low text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {saving.type}
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{getCurrencySymbol(currentProfile?.currency)}{saving.currentAmount.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground capitalize">in {saving.type}</p>
-              {saving.description && <p className="text-xs text-muted-foreground">{saving.description}</p>}
-              <Button variant="outline" size="sm" className="w-full mt-4" onClick={() => handleAdjustClick(saving as SavingsAccount & { id: string })}>
-                Adjust Balance
-              </Button>
-              <div className="flex gap-2 mt-2">
+            <CardContent className="flex-1 flex flex-col px-6 pb-6 pt-4">
+              <div className="space-y-1 mb-6 flex-1">
+                <CardTitle className="text-xl font-bold leading-tight">{saving.name}</CardTitle>
+                <p className="text-sm text-muted-foreground line-clamp-1">{saving.description || 'No description'}</p>
+              </div>
+              
+              <div className="space-y-3 mb-6">
+                <div className="flex items-end justify-between">
+                  <div className="text-3xl font-extrabold tracking-tight">{getCurrencySymbol(currentProfile?.currency)}{saving.currentAmount.toLocaleString()}</div>
+                  {saving.goalAmount ? (
+                    <div className="text-xs font-bold text-primary">
+                      {Math.round((saving.currentAmount / saving.goalAmount) * 100)}% of {getCurrencySymbol(currentProfile?.currency)}{(saving.goalAmount >= 1000 ? (saving.goalAmount / 1000).toFixed(0) + 'k' : saving.goalAmount)}
+                    </div>
+                  ) : null}
+                </div>
+                {saving.goalAmount ? (
+                  <div className="h-1.5 w-full bg-surface-low rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, Math.max(0, (saving.currentAmount / saving.goalAmount) * 100))}%` }} />
+                  </div>
+                ) : (
+                  <div className="h-1.5 w-full bg-transparent" />
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="secondary" className="flex-1 rounded-xl bg-primary/5 hover:bg-primary/10 text-primary font-bold shadow-none" onClick={() => handleAdjustClick(saving as SavingsAccount & { id: string })}>
+                  Adjust Balance
+                </Button>
                 <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full"
+                  variant="secondary" 
+                  size="icon"
+                  className="rounded-xl w-10 h-10 bg-primary/5 hover:bg-primary/10 text-primary shadow-none flex-shrink-0"
                   onClick={() => handleHistoryClick(saving.name)}
                 >
-                  History
+                  <History className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>

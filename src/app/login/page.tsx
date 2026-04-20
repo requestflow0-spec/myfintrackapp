@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth, useUser, initiateEmailSignIn, initiateEmailSignUp } from '@/firebase';
+import { useAccount, useUser } from '@/appwrite';
+import { ID } from 'appwrite';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -42,7 +43,7 @@ const signUpSchema = z.object({
 
 export default function LoginPage() {
   const { user, isUserLoading } = useUser();
-  const auth = useAuth();
+  const account = useAccount();
   const router = useRouter();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -59,7 +60,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isUserLoading && user && !user.isAnonymous) {
+    if (!isUserLoading && user) {
       console.log("User detected, redirecting to /dashboard...");
       router.replace('/dashboard');
     }
@@ -69,7 +70,9 @@ export default function LoginPage() {
     console.log("Attempting login...");
     setIsSubmitting(true);
     try {
-      await initiateEmailSignIn(auth, values.email, values.password);
+      await account.createEmailPasswordSession(values.email, values.password);
+      // Wait for session to be registered before redirecting is handled by context, or force a reload
+      window.location.href = '/dashboard';
       toast({
         title: "Login Successful",
         description: "Welcome back!",
@@ -95,8 +98,13 @@ export default function LoginPage() {
     console.log("handleSignUp called with:", values);
     setIsSubmitting(true);
     try {
-      const result = await initiateEmailSignUp(auth, values.email, values.password, values.name);
-      console.log("Signup success:", result);
+      const user = await account.create(ID.unique(), values.email, values.password, values.name);
+      await account.createEmailPasswordSession(values.email, values.password);
+      
+      console.log("Signup success:", user);
+      
+      // Navigate to dashboard
+      window.location.href = '/dashboard';
       toast({
         title: "Account Created",
         description: "Welcome to FinTrack Pro!",
@@ -113,7 +121,7 @@ export default function LoginPage() {
     }
   };
 
-  if (isUserLoading || (user && !user.isAnonymous)) {
+  if (isUserLoading || user) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <div className="flex flex-col items-center gap-4">

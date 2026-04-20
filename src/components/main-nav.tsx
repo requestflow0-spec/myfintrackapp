@@ -23,6 +23,8 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
     { href: "/income", label: "Income", icon: TrendingUp, active: pathname === "/income" },
     { href: "/expenses", label: "Expenses", icon: TrendingDown, active: pathname === "/expenses" },
     { href: "/transactions", label: "Transactions", icon: ArrowRightLeft, active: pathname === "/transactions" },
+    { href: "/budgets", label: "Budgets", icon: PiggyBank, active: pathname === "/budgets" || pathname === "/budgets/add" },
+    { href: "/recurring", label: "Recurring", icon: ArrowRightLeft, active: pathname === "/recurring" || pathname === "/recurring/add" },
     { href: "/savings", label: "Savings", icon: PiggyBank, active: pathname === "/savings" },
     { href: "/debts", label: "Debts", icon: Landmark, active: pathname === "/debts" },
     { href: "/reports", label: "Reports", icon: BarChart3, active: pathname === "/reports" },
@@ -30,18 +32,20 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
   ];
 
   return (
-    <nav className={cn("flex flex-col space-y-2 p-2", className)} {...props}>
+    <nav className={cn("flex flex-col space-y-1 p-4", className)} {...props}>
       {routes.map((route) => (
         <Link
           key={route.href}
           href={route.href}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-            route.active && "bg-accent text-primary"
+            "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
+            route.active 
+              ? "bg-primary/10 text-primary font-semibold" 
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >
-          <route.icon className="h-4 w-4" />
-          {route.label}
+          <route.icon className={cn("h-4.5 w-4.5", route.active ? "text-primary" : "text-muted-foreground/70")} />
+          <span className="font-headline tracking-tight">{route.label}</span>
         </Link>
       ))}
     </nav>

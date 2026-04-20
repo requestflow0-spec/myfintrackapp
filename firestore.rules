@@ -92,6 +92,30 @@ service cloud.firestore {
           allow update: if isExistingOwner(userId) && isImmutableProfileId();
           allow delete: if isExistingOwner(userId);
         }
+
+        // Budgets
+        match /budgets/{budgetId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
+          allow update: if isExistingOwner(userId) && isImmutableProfileId();
+          allow delete: if isExistingOwner(userId);
+        }
+
+        // Recurring Transactions
+        match /recurringTransactions/{recurringId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
+          allow update: if isExistingOwner(userId) && isImmutableProfileId();
+          allow delete: if isExistingOwner(userId);
+        }
+
+        // Reminders
+        match /reminders/{reminderId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidSubcollectionData(userProfileId);
+          allow update: if isExistingOwner(userId) && isImmutableProfileId();
+          allow delete: if isExistingOwner(userId);
+        }
       }
     }
   }

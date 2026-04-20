@@ -25,9 +25,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/appwrite"
 import { useProfile } from "@/context/ProfileContext"
-import { collection } from "firebase/firestore"
+import { collection } from '@/appwrite'
 import type { Income, Expense, Transaction, Debt, SavingsAccount } from "@/lib/types"
 import { cn, getCurrencySymbol } from "@/lib/utils"
 import { useState, useMemo } from "react"
@@ -292,8 +292,8 @@ export default function ReportsPage() {
     <div className="flex-1 space-y-4">
       <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Reports & Analytics</h2>
-          <p className="text-muted-foreground">Deep dive into your financial data dynamically.</p>
+          <h2 className="text-4xl font-extrabold font-display tracking-tight mb-2">Financial Performance</h2>
+          <p className="text-lg font-medium text-muted-foreground/80">Detailed breakdown of your liquidity, savings architecture, and capital allocation.</p>
         </div>
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-2 w-full xl:w-auto">
           <div className="flex flex-wrap gap-2">
@@ -318,96 +318,91 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Earned</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{getCurrencySymbol(currentProfile?.currency)}{totalEarned.toLocaleString()}</div>
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-3 mb-8">
+        <Card className="bg-surface-low border-none shadow-none rounded-[24px]">
+          <CardContent className="p-8">
+            <h3 className="text-xs font-bold tracking-widest uppercase text-primary/80 mb-2 flex items-center justify-between">
+              Net Profit
+              <DollarSign className="h-4 w-4 text-muted-foreground/50" />
+            </h3>
+            <div className="text-4xl font-extrabold font-display tracking-tight text-foreground">{getCurrencySymbol(currentProfile?.currency)}{netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            {totalEarned > 0 && (
+              <p className={cn("text-sm font-bold mt-3", profitMargin > 0 ? "text-emerald-600" : "text-destructive")}>
+                {profitMargin > 0 ? '+' : ''}{profitMargin.toFixed(1)}% margin
+              </p>
+            )}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Money Spent</CardTitle>
-            <Wallet className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{getCurrencySymbol(currentProfile?.currency)}{moneySpent.toLocaleString()}</div>
+        <Card className="bg-surface-low border-none shadow-none rounded-[24px]">
+          <CardContent className="p-8">
+            <h3 className="text-xs font-bold tracking-widest uppercase text-primary/80 mb-2 flex items-center justify-between">
+              Cash Flow
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground/50" />
+            </h3>
+            <div className="text-4xl font-extrabold font-display tracking-tight text-foreground">{getCurrencySymbol(currentProfile?.currency)}{totalEarned.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <p className="text-sm font-bold mt-3 text-muted-foreground">
+               <span className="text-destructive">- {getCurrencySymbol(currentProfile?.currency)}{moneySpent.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span> outflow
+            </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {getCurrencySymbol(currentProfile?.currency)}{netProfit.toLocaleString()}
+        <Card className="bg-surface-low border-none shadow-none rounded-[24px]">
+          <CardContent className="p-8">
+            <h3 className="text-xs font-bold tracking-widest uppercase text-primary/80 mb-2 flex items-center justify-between">
+              Savings Rate
+              <Wallet className="h-4 w-4 text-muted-foreground/50" />
+            </h3>
+            <div className="text-4xl font-extrabold font-display tracking-tight text-foreground">
+              {(totalEarned > 0 ? (netSavedAmount / totalEarned) * 100 : 0).toFixed(1)}%
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Profit Margin</CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-600" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${profitMargin >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-              {profitMargin.toFixed(1)}%
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Active Debt</CardTitle>
-            <FileText className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold text-orange-600`}>
-              {getCurrencySymbol(currentProfile?.currency)}{totalDebts.toLocaleString()}
-            </div>
+            <p className="text-sm font-bold mt-3 text-emerald-600">
+               {netSavedAmount > 0 ? '+' : ''}{getCurrencySymbol(currentProfile?.currency)}{netSavedAmount.toLocaleString()} net saved
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 max-h-[450px] flex flex-col">
-          <CardHeader>
-            <CardTitle>Totals by Category</CardTitle>
-            <CardDescription>Income and expense breakdown across all categories.</CardDescription>
+        <Card className="col-span-4 max-h-[450px] flex flex-col bg-card border-none shadow-sm rounded-[24px]">
+          <CardHeader className="px-8 pt-8">
+            <CardTitle className="text-xl font-bold font-display">Income vs. Expenses</CardTitle>
+            <CardDescription className="font-medium">Monthly trajectory analysis</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 pb-4">
+          <CardContent className="flex-1 pb-8 px-8">
             <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-              <BarChart data={categoryBarData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <BarChart data={categoryBarData} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
                 <XAxis 
                   dataKey="category" 
                   stroke="hsl(var(--muted-foreground))"
-                  tick={{fill: 'hsl(var(--muted-foreground))'}}
+                  tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 600}}
+                  tickLine={false}
+                  axisLine={false}
+                  dy={10}
                 />
                 <YAxis 
                   stroke="hsl(var(--muted-foreground))"
-                  tick={{fill: 'hsl(var(--muted-foreground))'}}
+                  tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 600}}
                   tickFormatter={(value) => `${getCurrencySymbol(currentProfile?.currency)}${value}`}
+                  tickLine={false}
+                  axisLine={false}
+                  dx={-10}
                 />
                 <RechartsTooltip 
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--surface-low))', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
                 />
-                <Legend verticalAlign="top" height={36}/>
-                <Bar dataKey="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 600, color: 'hsl(var(--muted-foreground))' }} />
+                <Bar dataKey="Income" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={24} />
+                <Bar dataKey="Expense" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={24} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="col-span-4 lg:col-span-3 max-h-[450px] flex flex-col">
-          <CardHeader>
-            <CardTitle>Expense By Category</CardTitle>
-            <CardDescription>Breakdown of expenses for the selected period.</CardDescription>
+        <Card className="col-span-4 lg:col-span-3 max-h-[450px] flex flex-col bg-card border-none shadow-sm rounded-[24px]">
+          <CardHeader className="px-8 pt-8">
+            <CardTitle className="text-xl font-bold font-display">Expense By Category</CardTitle>
+            <CardDescription className="font-medium">Structural distribution</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 pb-4">
             {categoryPieData.length > 0 ? (
@@ -442,12 +437,12 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Comprehensive Ledger</CardTitle>
-          <CardDescription>Deep dive into your transactions with advanced filtering and sorting.</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="mt-12 bg-card border-none shadow-sm rounded-[24px]">
+        <div className="px-8 pt-8 pb-4 border-b border-surface-low/50">
+          <h3 className="text-xl font-bold font-display">Comprehensive Ledger</h3>
+          <p className="text-sm font-medium text-muted-foreground mt-1">Verified historical transaction records</p>
+        </div>
+        <div className="p-8">
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -490,53 +485,54 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('date')}>
+          <div className="border-none mt-2">
+            <Table className="border-none">
+              <TableHeader className="[&_tr]:border-none">
+                <TableRow className="hover:bg-transparent uppercase text-[10px] tracking-widest font-bold text-muted-foreground/50 border-b border-surface-low/50">
+                  <TableHead className="h-12 cursor-pointer hover:text-primary transition-colors pl-4" onClick={() => handleSort('date')}>
                     <div className="flex items-center gap-1">Date <ArrowUpDown className="h-3 w-3"/></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('recipientSender')}>
-                    <div className="flex items-center gap-1">Recipient/Sender <ArrowUpDown className="h-3 w-3"/></div>
+                  <TableHead className="h-12 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('recipientSender')}>
+                    <div className="flex items-center gap-1">Description <ArrowUpDown className="h-3 w-3"/></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('category')}>
+                  <TableHead className="h-12 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('category')}>
                     <div className="flex items-center gap-1">Category <ArrowUpDown className="h-3 w-3"/></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('type')}>
-                    <div className="flex items-center gap-1">Type <ArrowUpDown className="h-3 w-3"/></div>
+                  <TableHead className="h-12 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('type')}>
+                    <div className="flex items-center gap-1">Method/Status <ArrowUpDown className="h-3 w-3"/></div>
                   </TableHead>
-                  <TableHead className="text-right cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('amount')}>
+                  <TableHead className="h-12 text-right cursor-pointer hover:text-primary transition-colors pr-4" onClick={() => handleSort('amount')}>
                     <div className="flex items-center justify-end gap-1">Amount <ArrowUpDown className="h-3 w-3"/></div>
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="[&_tr]:border-none">
                 {transactionsLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24">Loading transactions...</TableCell>
+                    <TableCell colSpan={5} className="text-center h-24 font-display text-muted-foreground italic">Curating your movements...</TableCell>
                   </TableRow>
                 ) : filteredTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24">No transactions found for the selected filters.</TableCell>
+                    <TableCell colSpan={5} className="text-center h-24 font-display text-muted-foreground italic">No movements found matching your curation.</TableCell>
                   </TableRow>
                 ) : (
                   filteredTransactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell className="font-medium whitespace-nowrap">{tx.date}</TableCell>
-                      <TableCell>
-                        <div className="font-medium">{tx.recipientSender}</div>
-                        {tx.description && <div className="text-xs text-muted-foreground">{tx.description}</div>}
+                    <TableRow key={tx.id} className="hover:bg-muted/30 transition-all border-b border-surface-low/30 last:border-0 group">
+                      <TableCell className="py-5 font-semibold text-muted-foreground/70 group-hover:text-foreground transition-colors pl-4">{tx.date}</TableCell>
+                      <TableCell className="py-5">
+                        <div className="font-bold text-foreground">{tx.recipientSender}</div>
+                        {tx.description && <div className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider mt-0.5">{tx.description}</div>}
                       </TableCell>
-                      <TableCell>{tx.category}</TableCell>
-                      <TableCell>
-                        <Badge variant={tx.type === 'income' ? 'default' : 'secondary'} className={tx.type === 'income' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'}>
-                          {tx.type}
-                        </Badge>
+                      <TableCell className="py-5">
+                         <span className="px-2 py-1 bg-surface-low rounded-md text-xs font-semibold text-muted-foreground uppercase tracking-wider">{tx.category}</span>
+                      </TableCell>
+                      <TableCell className="py-5">
+                         <div className="text-sm font-medium text-muted-foreground capitalize">{tx.modeOfPayment}</div>
+                         <div className={cn("inline-block w-1.5 h-1.5 rounded-full mt-2", tx.type === 'income' ? 'bg-emerald-500' : 'bg-destructive')} />
                       </TableCell>
                       <TableCell className={cn(
-                        "text-right font-bold",
-                        tx.type === 'income' ? "text-green-600" : "text-red-600"
+                        "text-right font-extrabold tracking-tight text-lg py-5 pr-4",
+                        tx.type === 'income' ? "text-foreground" : "text-foreground"
                       )}>
                         {tx.type === 'income' ? "+" : "-"}{getCurrencySymbol(currentProfile?.currency)}{tx.amount.toLocaleString()}
                       </TableCell>
@@ -546,8 +542,8 @@ export default function ReportsPage() {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

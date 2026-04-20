@@ -8,31 +8,33 @@ body {
 
 @layer base {
   :root {
-    --background: 215 38% 93%;
-    --foreground: 222 84% 5%;
-    --card: 215 38% 99%;
-    --card-foreground: 222 84% 5%;
-    --popover: 215 38% 99%;
-    --popover-foreground: 222 84% 5%;
-    --primary: 227 76% 57%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 197 71% 73%;
-    --accent-foreground: 222 47% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 227 76% 57%;
-    --chart-1: 227 76% 57%;
-    --chart-2: 197 71% 73%;
-    --chart-3: 173 58% 39%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --background: 231 100% 98.4%;
+    --foreground: 212 62% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 212 62% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 212 62% 11%;
+    --primary: 227 56% 48%;
+    --primary-foreground: 0 0% 100%;
+    --primary-container: 227 56% 92%;
+    --secondary: 263 75% 53%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-container: 263 75% 92%;
+    --muted: 220 100% 97%;
+    --muted-foreground: 212 25% 45%;
+    --accent: 216 97% 91%;
+    --accent-foreground: 212 62% 11%;
+    --destructive: 0 75% 42%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 221 33% 89%;
+    --input: 221 33% 89%;
+    --ring: 227 56% 48%;
+    --radius: 1rem;
+    --chart-1: 227 56% 48%;
+    --chart-2: 263 75% 53%;
+    --chart-3: 161 100% 21%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 18 84% 53%;
   }
 
   .dark {
@@ -69,5 +71,23 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-card/70 backdrop-blur-xl border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-background/70 backdrop-blur-xl border border-white/10;
+  }
+
+  .elevation-tonal {
+    @apply bg-card shadow-[0_10px_30px_rgba(11,28,48,0.05),0_4px_8px_rgba(11,28,48,0.03)];
+  }
+
+  .no-border {
+    @apply border-none !important;
   }
 }

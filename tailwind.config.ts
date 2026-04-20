@@ -11,7 +11,8 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        display: ['Manrope', 'sans-serif'],
+        headline: ['Manrope', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -28,10 +29,12 @@ export default {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          container: 'hsl(var(--primary-container))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
+          container: 'hsl(var(--secondary-container))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
@@ -54,6 +57,12 @@ export default {
           '3': 'hsl(var(--chart-3))',
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
+        },
+        surface: {
+          DEFAULT: 'hsl(var(--background))',
+          low: 'hsl(var(--muted))',
+          lowest: 'hsl(var(--card))',
+          highest: 'hsl(var(--accent))',
         },
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',

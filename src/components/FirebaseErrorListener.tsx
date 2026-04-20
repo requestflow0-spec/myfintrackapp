@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/appwrite/error-emitter';
+import { FirestorePermissionError } from '@/appwrite/errors';
 import { useToast } from '@/hooks/use-toast';
 
 /**

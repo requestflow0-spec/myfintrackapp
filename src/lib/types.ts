@@ -77,3 +77,41 @@ export type ReportData = {
   income: number;
   expenses: number;
 };
+
+export type Budget = {
+  id?: string;
+  profileId: string;
+  category: string;
+  period: 'weekly' | 'monthly' | 'yearly';
+  limitAmount: number;
+  alertThreshold: number;
+  currency: string;
+  createdAt: any;
+};
+
+export type RecurringTransaction = {
+  id?: string;
+  profileId: string;
+  type: 'income' | 'expense';
+  amount: number;
+  category: string;
+  description: string;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  startDate: any;
+  nextDueDate: any;
+  lastExecutedDate?: any;
+  isActive: boolean;
+  linkedExpenseId?: string;
+};
+
+export type Reminder = {
+  id?: string;
+  profileId: string;
+  title: string;
+  dueDate: any;
+  amount?: number;
+  type: 'debt_payment' | 'bill' | 'recurring';
+  linkedId?: string;
+  isDismissed: boolean;
+  isRecurring: boolean;
+};

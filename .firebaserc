@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "myfintrackapp-48378",
+    "staging": "myfintrackapp-48378"
+  },
+  "targets": {},
+  "etags": {}
+}

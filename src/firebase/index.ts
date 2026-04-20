@@ -7,31 +7,31 @@ import { getFirestore } from 'firebase/firestore'
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
+  console.log("[Firebase] Initializing SDKs...");
+  
   if (!getApps().length) {
-    // Important! initializeApp() is called without any arguments because Firebase App Hosting
-    // integrates with the initializeApp() function to provide the environment variables needed to
-    // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
-    // without arguments.
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
     let firebaseApp;
-    try {
-      // Attempt to initialize via Firebase App Hosting environment variables
-      firebaseApp = initializeApp();
-    } catch (e: any) {
-      // Only warn in production (when not in build time) if automatic initialization fails
-      const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
-      if (process.env.NODE_ENV === "production" && !isBuildTime) {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
-      
-      // If we have local config, use it as fallback
-      if (firebaseConfig.apiKey) {
+
+    // Check for explicit config first
+    if (firebaseConfig.apiKey) {
+      console.log("[Firebase] Initializing with explicit config for project:", firebaseConfig.projectId);
+      try {
         firebaseApp = initializeApp(firebaseConfig);
-      } else {
-        // This will only happen if both environments are missing config
+      } catch (e: any) {
+        console.error("[Firebase] Initialization with config failed:", e);
+        throw e;
+      }
+    } else {
+      // Fallback to App Hosting implicit config ONLY if no explicit config is provided
+      console.log("[Firebase] No explicit config found. Attempting automatic initialization...");
+      try {
+        firebaseApp = initializeApp();
+        console.log("[Firebase] Automatic initialization successful.");
+      } catch (e: any) {
         if (!isBuildTime) {
-          console.error('Firebase initialization failed: No config options provided.');
+          console.error("[Firebase] Automatic initialization failed and no fallback config found.", e);
         }
-        // Create a dummy app to prevent crashes during some build phases if needed
         throw e;
       }
     }
@@ -39,7 +39,7 @@ export function initializeFirebase() {
     return getSdks(firebaseApp);
   }
 
-  // If already initialized, return the SDKs with the already initialized App
+  console.log("[Firebase] Using existing application instance.");
   return getSdks(getApp());
 }
 

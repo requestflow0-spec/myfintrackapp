@@ -22,8 +22,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { doc, updateDoc, arrayUnion, serverTimestamp } from "firebase/firestore"
-import { useUser, useFirestore } from "@/firebase"
+import { doc, updateDoc, arrayUnion, serverTimestamp } from '@/appwrite'
+import { useUser, useFirestore } from "@/appwrite"
 import { useProfile } from "@/context/ProfileContext"
 import type { Expense } from "@/lib/types"
 import { useState, useEffect, useMemo } from "react"
@@ -146,6 +146,15 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
     }
   }
 
+  const onError = (errors: any) => {
+    console.log("Validation Errors:", errors);
+    toast({
+      title: "Validation Error",
+      description: "Please check the form for invalid or missing fields.",
+      variant: "destructive",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -156,7 +165,7 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
             <FormField
               control={form.control}
               name="itemService"

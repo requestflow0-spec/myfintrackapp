@@ -35,10 +35,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useForm } from "react-hook-form"
 import { useEffect, useState } from "react"
-import { collection, serverTimestamp } from "firebase/firestore"
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase"
+import { collection, serverTimestamp, doc, addDoc } from '@/appwrite'
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/appwrite"
 import { useProfile } from "@/context/ProfileContext"
-import { doc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
@@ -61,7 +60,7 @@ export function Header() {
     return collection(firestore, `users/${user.uid}/userProfiles`)
   }, [firestore, user])
 
-  const { data: fetchedProfiles, isLoading: profilesLoading } = useCollection(profilesQuery)
+  const { data: fetchedProfiles, isLoading: profilesLoading, refetch: refetchProfiles } = useCollection(profilesQuery)
 
   // Synchronization logic for profiles.
   useEffect(() => {
@@ -70,13 +69,30 @@ export function Header() {
     if (!profilesLoading && fetchedProfiles) {
       setProfiles(fetchedProfiles);
 
-      // If no profile is selected, or the current selected one is not in the list, default to the first one available.
+      // Check localStorage for a previously selected profile
+      const savedProfileId = typeof window !== 'undefined' ? localStorage.getItem('fintrack_active_profile') : null;
+      
+      let profileToSelect = null;
+      if (savedProfileId) {
+        profileToSelect = fetchedProfiles.find(p => p.id === savedProfileId);
+      }
+
       const exists = currentProfile && fetchedProfiles.some(p => p.id === currentProfile.id);
       
       if (!exists && fetchedProfiles.length > 0) {
-        setCurrentProfile(fetchedProfiles[0]);
+        if (profileToSelect) {
+          setCurrentProfile(profileToSelect);
+        } else {
+          setCurrentProfile(fetchedProfiles[0]);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('fintrack_active_profile', fetchedProfiles[0].id);
+          }
+        }
       } else if (fetchedProfiles.length === 0) {
         setCurrentProfile(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('fintrack_active_profile');
+        }
       }
     }
   }, [fetchedProfiles, profilesLoading, setIsLoading, setProfiles, setCurrentProfile]);
@@ -106,9 +122,10 @@ export function Header() {
     const profilesCol = collection(firestore, `users/${user.uid}/userProfiles`);
     
     try {
-      await addDocumentNonBlocking(profilesCol, {
+      await addDoc(profilesCol, {
         ...values,
         userId: user.uid,
+        currency: 'USD',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -117,6 +134,8 @@ export function Header() {
         title: "Profile Created",
         description: `${values.name} is now active.`,
       });
+      
+      refetchProfiles();
       
       form.reset();
       setPopoverOpen(false);
@@ -129,6 +148,15 @@ export function Header() {
       });
     }
   }
+
+  const onError = (errors: any) => {
+    console.log("Validation Errors:", errors);
+    toast({
+      title: "Validation Error",
+      description: "Please check the form for invalid or missing fields.",
+      variant: "destructive",
+    });
+  };
 
   function handleDeleteProfile(profile: any) {
     setProfileToDelete(profile);
@@ -147,24 +175,26 @@ export function Header() {
       description: `${profileToDelete.name} has been removed.`,
     });
 
+    refetchProfiles();
+
     setDeleteDialogOpen(false);
     setProfileToDelete(null);
   }
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
+    <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="shrink-0 md:hidden">
+          <Button
+            variant="outline"
+            size="icon"
+            className="shrink-0 md:hidden"
+          >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col">
-          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-          <SheetDescription className="sr-only">
-            Main navigation menu for accessing different sections of the application.
-          </SheetDescription>
+        <SheetContent side="left">
           <nav className="grid gap-2 text-lg font-medium">
             <Link
               href="#"
@@ -190,7 +220,12 @@ export function Header() {
             <DropdownMenuSeparator />
             {profiles?.map(profile => (
               <DropdownMenuItem key={profile.id} className="flex items-center justify-between group">
-                <span className="flex-1 cursor-pointer" onClick={() => setCurrentProfile(profile)}>
+                <span className="flex-1 cursor-pointer" onClick={() => {
+                  setCurrentProfile(profile)
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('fintrack_active_profile', profile.id);
+                  }
+                }}>
                   {profile.name}
                 </span>
                 <Button 
@@ -249,7 +284,7 @@ export function Header() {
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -276,7 +311,9 @@ export function Header() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">Create Profile</Button>
+                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? "Creating..." : "Create Profile"}
+                </Button>
               </form>
             </Form>
           </DialogContent>

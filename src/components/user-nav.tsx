@@ -1,6 +1,6 @@
 "use client"
 
-import { useUser, useAuth } from "@/firebase"
+import { useUser, useAuth } from "@/appwrite"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {

@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 import {
     Dialog,
     DialogContent,
@@ -59,6 +60,7 @@ interface AdjustBalanceDialogProps {
 
 export function AdjustBalanceDialog({ item, type, open, onOpenChange, onConfirm }: AdjustBalanceDialogProps) {
     const { currentProfile } = useProfile();
+    const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -80,10 +82,19 @@ export function AdjustBalanceDialog({ item, type, open, onOpenChange, onConfirm 
             onOpenChange(false);
         } catch (error) {
             console.error("Failed to adjust balance:", error);
-        } finally {
-            setIsSubmitting(false);
-        }
+    } finally {
+      setIsSubmitting(false);
     }
+  }
+
+  const onError = (errors: any) => {
+    console.log("Validation Errors:", errors);
+    toast({
+      title: "Validation Error",
+      description: "Please check the form for invalid or missing fields.",
+      variant: "destructive",
+    });
+  };
 
     const title = type === 'savings' ? "Adjust Savings" : "Adjust Debt";
     const description = type === 'savings'
@@ -100,7 +111,7 @@ export function AdjustBalanceDialog({ item, type, open, onOpenChange, onConfirm 
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="operation"
