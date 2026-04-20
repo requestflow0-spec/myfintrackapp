@@ -63,7 +63,6 @@ export default function AddIncomePage() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Submitting income form...", values);
     if (!user) {
       console.error("User is not logged in/defined");
       return;
@@ -77,8 +76,6 @@ export default function AddIncomePage() {
       })
       return;
     }
-    console.log("User UID:", user.uid);
-    console.log("Current Profile ID:", currentProfile.id);
 
     const incomesCol = collection(firestore, `users/${user.uid}/userProfiles/${currentProfile.id}/incomes`);
     const incomeData = {
@@ -132,7 +129,6 @@ export default function AddIncomePage() {
   }
 
   const onError = (errors: any) => {
-    console.log("Validation Errors:", errors);
     toast({
       title: "Validation Error",
       description: "Please check the form for invalid or missing fields.",
