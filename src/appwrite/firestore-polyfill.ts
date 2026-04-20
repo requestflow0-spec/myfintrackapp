@@ -190,7 +190,7 @@ export function writeBatch(db: any) {
          update: (docRef: any, data: any) => { operations.push(() => updateDoc(docRef, data)); },
          delete: (docRef: any) => { operations.push(() => deleteDoc(docRef)); },
          commit: async () => {
-              for (const op of operations) await op();
+              await Promise.all(operations.map(op => op()));
               if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('fintrack-refresh'));
          }
     };
