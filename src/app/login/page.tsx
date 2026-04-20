@@ -61,13 +61,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-      console.log("User detected, redirecting to /dashboard...");
       router.replace('/dashboard');
     }
   }, [user, isUserLoading, router]);
 
   const handleLogin = async (values: z.infer<typeof loginSchema>) => {
-    console.log("Attempting login...");
     setIsSubmitting(true);
     try {
       await account.createEmailPasswordSession(values.email, values.password);
@@ -95,13 +93,10 @@ export default function LoginPage() {
       return;
     }
     
-    console.log("handleSignUp called with:", values);
     setIsSubmitting(true);
     try {
       const user = await account.create(ID.unique(), values.email, values.password, values.name);
       await account.createEmailPasswordSession(values.email, values.password);
-      
-      console.log("Signup success:", user);
       
       // Navigate to dashboard
       window.location.href = '/dashboard';
@@ -284,7 +279,6 @@ export default function LoginPage() {
                     type="submit" 
                     className="w-full" 
                     disabled={isSubmitting}
-                    onClick={() => console.log("Create Account button clicked!")}
                   >
                     {isSubmitting ? "Creating Account..." : "Create Account"}
                   </Button>

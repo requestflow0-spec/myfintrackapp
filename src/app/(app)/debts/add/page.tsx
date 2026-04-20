@@ -87,7 +87,6 @@ export default function AddDebtPage() {
   }
 
   const onError = (errors: any) => {
-    console.log("Validation Errors:", errors);
     toast({
       title: "Validation Error",
       description: "Please check the form for invalid or missing fields.",
